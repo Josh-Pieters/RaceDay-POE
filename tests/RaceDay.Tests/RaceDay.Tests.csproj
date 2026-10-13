@@ -22,7 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\RaceDay.Api\RaceDay.Api.csproj" />
+		<ProjectReference Include="..\..\src\RaceDay.Api\RaceDay POE.csproj" />
 	</ItemGroup>
 
 </Project>
