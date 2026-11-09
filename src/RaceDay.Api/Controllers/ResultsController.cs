@@ -102,7 +102,13 @@ public class ResultsController : ApiControllerBase
             .OrderByDescending(r => r.Enrolment.Category.Event.EventDate)
             .ToListAsync();
 
-        return Ok(results.Select(r => ResultResponse.From(r)).ToList());
+        var totals = await FinisherCountsAsync(results.Select(r => r.Enrolment.Category.EventID));
+        return Ok(results.Select(r =>
+        {
+            var dto = ResultResponse.From(r);
+            dto.TotalFinishers = totals.GetValueOrDefault(r.Enrolment.Category.EventID);
+            return dto;
+        }).ToList());
     }
 
     /// <summary>Lists all results for an event, ordered by category and position.</summary>
@@ -124,6 +130,22 @@ public class ResultsController : ApiControllerBase
             .ThenBy(r => r.CategoryPosition)
             .ToListAsync();
 
-        return Ok(results.Select(r => ResultResponse.From(r)).ToList());
+        return Ok(results.Select(r =>
+        {
+            var dto = ResultResponse.From(r);
+            dto.TotalFinishers = results.Count;
+            return dto;
+        }).ToList());
+    }
+
+    /// <summary>Counts how many results exist for each of the given events.</summary>
+    private async Task<Dictionary<int, int>> FinisherCountsAsync(IEnumerable<int> eventIds)
+    {
+        var ids = eventIds.Distinct().ToList();
+        return await _db.Results.AsNoTracking()
+            .Where(r => ids.Contains(r.Enrolment.Category.EventID))
+            .GroupBy(r => r.Enrolment.Category.EventID)
+            .Select(g => new { EventID = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.EventID, x => x.Count);
     }
 }
