@@ -1,0 +1,17 @@
+@model EventFormViewModel
+@{ ViewData["Title"] = "Edit event"; }
+<partial name="_EventTabs" model='new EventTabsModel(Model.EventID ?? 0, Model.EventName, "Edit")' />
+<div class="panel">
+    <form asp-action="EditEvent" asp-route-id="@Model.EventID" method="post" enctype="multipart/form-data" novalidate>
+        <input type="hidden" asp-for="EventID" />
+        <input type="hidden" asp-for="CurrentBannerUrl" />
+        <partial name="_EventFields" model="Model" />
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-raceday">Save changes</button>
+            <a class="btn btn-outline-secondary" asp-action="Events">Back to events</a>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
