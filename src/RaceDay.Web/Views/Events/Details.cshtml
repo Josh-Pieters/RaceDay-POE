@@ -1,0 +1,110 @@
+@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.EventName;
+}
+<section class="event-hero @(string.IsNullOrEmpty(ev.BannerImageUrl) ? UiHelpers.TypeClass(ev.EventType) : "has-image")">
+    @if (!string.IsNullOrEmpty(ev.BannerImageUrl))
+    {
+        <img src="@ev.BannerImageUrl" alt="Banner for @ev.EventName" />
+    }
+    <div class="event-hero-text">
+        <span class="type-chip static @UiHelpers.TypeClass(ev.EventType)">@ev.EventType</span>
+        <h1>@ev.EventName</h1>
+        <p>@UiHelpers.Date(ev.EventDate) &middot; @UiHelpers.Time(ev.StartTime) &middot; @ev.Location</p>
+    </div>
+</section>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <div class="panel">
+            <h2>About this event</h2>
+            <p>@(string.IsNullOrWhiteSpace(ev.Description) ? "No description has been added yet." : ev.Description)</p>
+            <dl class="info-grid">
+                <div><dt>Date</dt><dd>@UiHelpers.Date(ev.EventDate)</dd></div>
+                <div><dt>Start time</dt><dd>@UiHelpers.Time(ev.StartTime)</dd></div>
+                <div><dt>Location</dt><dd>@ev.Location</dd></div>
+                <div><dt>Province</dt><dd>@(ev.Province ?? "-")</dd></div>
+                <div><dt>Distance</dt><dd>@UiHelpers.Km(ev.DistanceKM)</dd></div>
+                <div><dt>Organiser</dt><dd>@ev.OrganiserName</dd></div>
+            </dl>
+        </div>
+
+        <div class="panel">
+            <h2>Categories</h2>
+            @if (ev.Categories == null || !ev.Categories.Any())
+            {
+                <p class="text-muted mb-0">The organiser has not added any categories yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-raceday align-middle mb-0">
+                        <thead><tr><th>Category</th><th>Distance</th><th>Entry fee</th><th>Places</th></tr></thead>
+                        <tbody>
+                            @foreach (var c in ev.Categories)
+                            {
+                                <tr>
+                                    <td>@c.CategoryName</td>
+                                    <td>@UiHelpers.Km(c.DistanceKM)</td>
+                                    <td>@UiHelpers.Money(c.Price)</td>
+                                    <td>@c.MaxParticipants</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel enrol-panel">
+            <h2>Enter this event</h2>
+            @if (User.IsInRole("Participant"))
+            {
+                if (Model.MyEnrolment != null)
+                {
+                    <div class="enrolled-note">
+                        <partial name="_StatusBadge" model="Model.MyEnrolment.Status" />
+                        <p class="mb-2 mt-2">You are enrolled in <strong>@Model.MyEnrolment.CategoryName</strong>.</p>
+                        <a asp-controller="Participant" asp-action="MyEnrolments" class="btn btn-outline-raceday btn-sm">View my enrolments</a>
+                    </div>
+                }
+                else if (ev.Categories == null || !ev.Categories.Any())
+                {
+                    <p class="text-muted mb-0">Enrolment opens once categories are added.</p>
+                }
+                else
+                {
+                    <form asp-controller="Events" asp-action="Enrol" method="post">
+                        <input type="hidden" name="eventId" value="@ev.EventID" />
+                        <p class="text-muted">Choose your category:</p>
+                        <div class="category-options">
+                            @foreach (var c in ev.Categories)
+                            {
+                                <div>
+                                    <input class="btn-check" type="radio" name="categoryId" id="cat@(c.CategoryID)" value="@c.CategoryID" />
+                                    <label class="category-option" for="cat@(c.CategoryID)">
+                                        <span><strong>@c.CategoryName</strong><small>@UiHelpers.Km(c.DistanceKM)</small></span>
+                                        <span class="price">@UiHelpers.Money(c.Price)</span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <button type="submit" class="btn btn-raceday w-100 mt-3">Enrol now</button>
+                    </form>
+                }
+            }
+            else if (User.IsInRole("Organiser"))
+            {
+                <p class="text-muted mb-0">You are logged in as an Organiser. Only Participants can enter events.</p>
+            }
+            else
+            {
+                <p class="text-muted">Log in or create an account to enter this event.</p>
+                <a class="btn btn-raceday w-100" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Events", new { id = ev.EventID })">Log in to enrol</a>
+            }
+        </div>
+    </div>
+</div>
