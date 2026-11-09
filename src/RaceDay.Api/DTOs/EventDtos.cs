@@ -44,8 +44,6 @@ public class EventResponse
     public string EventType { get; set; } = string.Empty;
     public decimal DistanceKM { get; set; }
     public string? BannerImageUrl { get; set; }
-
-    /// <summary>Confirmed enrolments across all categories. Only filled in for the Organiser dashboard.</summary>
     public int? EnrolmentCount { get; set; }
 
     public List<CategoryResponse>? Categories { get; set; }

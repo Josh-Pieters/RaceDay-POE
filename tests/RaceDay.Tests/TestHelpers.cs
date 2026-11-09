@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using RaceDay.Api.DTOs;
 
@@ -67,5 +68,20 @@ public static class TestHelpers
         var response = await participant.PostAsync($"/api/categories/{categoryId}/enrolments", null);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<EnrolmentResponse>())!;
+    }
+
+    /// <summary>Builds a multipart upload body containing one file named "file".</summary>
+    public static MultipartFormDataContent ImageForm(string fileName = "banner.png",
+        string contentType = "image/png", byte[]? bytes = null)
+    {
+        // These first bytes are the PNG signature, so the API's image check accepts them.
+        bytes ??= new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x00 };
+
+        var file = new ByteArrayContent(bytes);
+        file.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+
+        var form = new MultipartFormDataContent();
+        form.Add(file, "file", fileName);
+        return form;
     }
 }

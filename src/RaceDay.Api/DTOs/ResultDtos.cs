@@ -30,6 +30,10 @@ public class ResultResponse
     public TimeOnly? FinishTime { get; set; }
     public int? OverallPosition { get; set; }
     public int? CategoryPosition { get; set; }
+    public int? TotalFinishers { get; set; }   
+
+    
+
 
     /// <summary>Expects Enrolment.Participant and Enrolment.Category.Event to be loaded.</summary>
     public static ResultResponse From(Result r) => new()
