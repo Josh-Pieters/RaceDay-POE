@@ -1,31 +1,41 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using RaceDay.Web.Models;
+using RaceDay.Web.Services;
 
 namespace RaceDay.Web.Controllers;
 
-public class HomeController : Controller
+public class HomeController : AppController
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly IApiClient _api;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(IApiClient api) => _api = api;
+
+    /// <summary>Upcoming events with filters. Public - no login needed.</summary>
+    public async Task<IActionResult> Index([FromQuery] EventFilter filter)
     {
-        _logger = logger;
+        var result = await _api.GetEventsAsync(filter);
+        if (!result.Success) ViewData["Error"] = result.Error;
+
+        return View(new HomeViewModel { Filter = filter, Events = result.Data ?? new() });
     }
 
-    public IActionResult Index()
+    /// <summary>Friendly error page. Raw error details are never shown to users.</summary>
+    public IActionResult Error(int? code)
     {
-        return View();
-    }
+        var status = code ?? Response.StatusCode;
+        var model = new ErrorViewModel { Code = status };
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+        if (status == 404)
+        {
+            model.Title = "Page not found";
+            model.Message = "We could not find the page you were looking for.";
+        }
+        else if (status == 403)
+        {
+            model.Title = "Access denied";
+            model.Message = "You do not have permission to view this page.";
+        }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        return View(model);
     }
 }

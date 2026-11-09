@@ -1,8 +1,63 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@model HomeViewModel
+@{ ViewData["Title"] = "Find your next race"; }
+<section class="hero">
+    <div class="hero-inner">
+        <p class="hero-kicker">South Africa's race calendar</p>
+        <h1>Find your next race</h1>
+        <p class="hero-sub">Runs, walks and cycle tours in every province. Pick an event, choose your category and enter in seconds.</p>
+    </div>
+</section>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<form method="get" asp-controller="Home" asp-action="Index" class="filter-bar">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label" for="Search">Search</label>
+            <input class="form-control" id="Search" name="Search" value="@Model.Filter.Search" placeholder="Name or location" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="Province">Province</label>
+            <select class="form-select" id="Province" name="Province">
+                <option value="">All provinces</option>
+                @foreach (var p in Lookups.Provinces)
+                {
+                <option value="@p" selected="@(Model.Filter.Province == p)">@p</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="EventType">Type</label>
+            <select class="form-select" id="EventType" name="EventType">
+                <option value="">All types</option>
+                @foreach (var t in Lookups.EventTypes)
+                {
+                <option value="@t" selected="@(Model.Filter.EventType == t)">@t</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="FromDate">From date</label>
+            <input class="form-control" type="date" id="FromDate" name="FromDate" value="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))" />
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-raceday flex-fill">Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary" title="Clear filters">Clear</a>
+        </div>
+    </div>
+</form>
+
+@if (!Model.Events.Any())
+{
+<div class="empty-state">
+    <h3>No events found</h3>
+    <p>Try changing or clearing your filters.</p>
 </div>
+}
+else
+{
+<div class="row g-4">
+    @foreach (var ev in Model.Events)
+        {
+    <div class="col-md-6 col-lg-4"><partial name="_EventCard" model="ev" /></div>
+        }
+</div>
+}
