@@ -1,0 +1,68 @@
+@model RegisterViewModel
+@{ ViewData["Title"] = "Register"; }
+<div class="auth-wrap">
+    <div class="auth-card wide">
+        <p class="eyebrow">Join the field</p>
+        <h1>Create your account</h1>
+        <form asp-action="Register" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label class="form-label d-block">I am registering as</label>
+                <div class="role-choice">
+                    <input type="radio" class="btn-check" asp-for="Role" value="Participant" id="roleParticipant" />
+                    <label class="btn btn-outline-raceday" for="roleParticipant">Participant<small>Enter events</small></label>
+                    <input type="radio" class="btn-check" asp-for="Role" value="Organiser" id="roleOrganiser" />
+                    <label class="btn btn-outline-raceday" for="roleOrganiser">Organiser<small>Run events</small></label>
+                </div>
+            </div>
+
+            <div class="mb-3" id="organiserCodeGroup">
+                <label asp-for="OrganiserCode" class="form-label"></label>
+                <input asp-for="OrganiserCode" class="form-control" autocomplete="off" />
+                <div class="form-text">Organisers need the code issued by RaceDay.</div>
+                <span asp-validation-for="OrganiserCode" class="text-danger"></span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" autocomplete="name" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PhoneNumber" class="form-label"></label>
+                    <input asp-for="PhoneNumber" class="form-control" autocomplete="tel" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-raceday w-100 mt-4">Create account</button>
+        </form>
+        <p class="auth-switch">Already registered? <a asp-action="Login">Log in</a></p>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Only Organisers need to enter the organiser code.
+        const group = document.getElementById('organiserCodeGroup');
+        const toggle = () => { group.style.display = document.getElementById('roleOrganiser').checked ? '' : 'none'; };
+        document.querySelectorAll('input[name="Role"]').forEach(r => r.addEventListener('change', toggle));
+        toggle();
+    </script>
+}
