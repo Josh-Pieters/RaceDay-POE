@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Data;
 using RaceDay.Api.DTOs;
 using RaceDay.Api.Models;
+using RaceDay.Api.Services;
 
 namespace RaceDay.Api.Controllers;
 
@@ -11,8 +12,13 @@ namespace RaceDay.Api.Controllers;
 public class EventsController : ApiControllerBase
 {
     private readonly RaceDayDbContext _db;
+    private readonly IBlobStorageService _blobs;
 
-    public EventsController(RaceDayDbContext db) => _db = db;
+    public EventsController(RaceDayDbContext db, IBlobStorageService blobs)
+    {
+        _db = db;
+        _blobs = blobs;
+    }
 
     /// <summary>Lists events (upcoming only by default) with optional filters.</summary>
     /// <remarks>
@@ -210,5 +216,79 @@ public class EventsController : ApiControllerBase
             .ToListAsync();
 
         return Ok(items.Select(e => EnrolmentResponse.From(e)).ToList());
+    }
+
+    /// <summary>Lists the logged-in Organiser's own events with enrolment totals (used by the dashboard).</summary>
+    /// <remarks>Each event includes its categories and an enrolmentCount of confirmed enrolments.</remarks>
+    /// <response code="200">Array of the Organiser's events ordered by date.</response>
+    /// <response code="401">Not logged in.</response>
+    /// <response code="403">Caller is not an Organiser.</response>
+    [HttpGet("mine")]
+    [Authorize(Roles = Roles.Organiser)]
+    [ProducesResponseType(typeof(IEnumerable<EventResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IEnumerable<EventResponse>>> GetMyEvents()
+    {
+        var me = CurrentUserId;
+
+        var events = await _db.Events.AsNoTracking()
+            .Include(e => e.Organiser)
+            .Include(e => e.Categories)
+            .Where(e => e.OrganiserID == me)
+            .OrderBy(e => e.EventDate)
+            .ToListAsync();
+
+        var counts = await _db.Enrolments.AsNoTracking()
+            .Where(e => e.Category.Event.OrganiserID == me && e.Status == EnrolmentStatuses.Confirmed)
+            .GroupBy(e => e.Category.EventID)
+            .Select(g => new { EventID = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.EventID, x => x.Count);
+
+        return Ok(events.Select(e => EventResponse.From(e, includeCategories: true, enrolmentCount: counts.GetValueOrDefault(e.EventID))).ToList());
+    }
+
+    /// <summary>Uploads or replaces an event's banner image (owning Organiser only).</summary>
+    /// <remarks>
+    /// Send multipart/form-data with one file field named "file" (JPG, PNG or WebP, max 5 MB).
+    /// The image is stored in Azure Blob Storage and its URL is saved on the event as bannerImageUrl.
+    /// </remarks>
+    /// <response code="200">The event with its new bannerImageUrl.</response>
+    /// <response code="400">No file, wrong type, too large, or not a real image.</response>
+    /// <response code="401">Not logged in.</response>
+    /// <response code="403">Caller is not an Organiser, or does not own this event.</response>
+    /// <response code="404">Event does not exist.</response>
+    /// <response code="503">Image storage is unavailable.</response>
+    [HttpPost("{id:int}/banner")]
+    [Authorize(Roles = Roles.Organiser)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(EventResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<EventResponse>> UploadBanner(int id, IFormFile file)
+    {
+        var ev = await _db.Events.Include(e => e.Organiser).FirstOrDefaultAsync(e => e.EventID == id);
+        if (ev == null) return NotFound(new ErrorResponse("Event not found."));
+        if (ev.OrganiserID != CurrentUserId) return Forbidden("You can only change the banner of your own events.");
+
+        var (error, extension) = await ImageValidator.ValidateAsync(file);
+        if (error != null) return BadRequest(new ErrorResponse(error));
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            ev.BannerImageUrl = await _blobs.UploadImageAsync(stream, "banners", extension, file.ContentType);
+        }
+        catch (BlobStorageUnavailableException)
+        {
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new ErrorResponse("Image storage is currently unavailable. Please try again later."));
+        }
+
+        await _db.SaveChangesAsync();
+        return EventResponse.From(ev);
     }
 }
