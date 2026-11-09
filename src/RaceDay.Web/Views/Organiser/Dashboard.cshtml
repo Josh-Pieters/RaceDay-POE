@@ -1,0 +1,62 @@
+@model OrganiserDashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; }
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div>
+        <p class="eyebrow">Organiser</p>
+        <h1>Dashboard</h1>
+    </div>
+    <a class="btn btn-raceday" asp-action="CreateEvent">+ Create event</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="stat-card"><span class="stat-number">@Model.TotalEvents</span><span class="stat-label">Events created</span></div></div>
+    <div class="col-md-4"><div class="stat-card"><span class="stat-number">@Model.UpcomingCount</span><span class="stat-label">Upcoming events</span></div></div>
+    <div class="col-md-4"><div class="stat-card"><span class="stat-number">@Model.TotalEnrolments</span><span class="stat-label">Total enrolments</span></div></div>
+</div>
+
+@if (Model.NextEvent != null)
+{
+<div class="next-event">
+    <div>
+        <p class="eyebrow">Next event</p>
+        <h2>@Model.NextEvent.EventName</h2>
+        <p class="mb-0">@UiHelpers.Date(Model.NextEvent.EventDate) &middot; @Model.NextEvent.Location</p>
+    </div>
+    <div class="next-event-count"><span class="stat-number">@(Model.NextEvent.EnrolmentCount ?? 0)</span><span class="stat-label">enrolled</span></div>
+</div>
+}
+
+<div class="panel p-0">
+    <div class="panel-title">Your events</div>
+    @if (!Model.Events.Any())
+    {
+    <div class="empty-state border-0">
+        <h3>No events yet</h3>
+        <p>Create your first event to start taking enrolments.</p>
+        <a class="btn btn-raceday" asp-action="CreateEvent">Create an event</a>
+    </div>
+    }
+    else
+    {
+    <div class="table-responsive">
+        <table class="table table-raceday align-middle mb-0">
+            <thead><tr><th>Event</th><th>Date</th><th>Type</th><th class="text-center">Enrolments</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var ev in Model.Events)
+                    {
+                <tr>
+                    <td><strong>@ev.EventName</strong><br /><small class="text-muted">@ev.Location</small></td>
+                    <td>@UiHelpers.Date(ev.EventDate)</td>
+                    <td><span class="type-chip static @UiHelpers.TypeClass(ev.EventType)">@ev.EventType</span></td>
+                    <td class="text-center"><span class="count-pill">@(ev.EnrolmentCount ?? 0)</span></td>
+                    <td class="text-end">
+                        <a class="btn btn-outline-raceday btn-sm" asp-controller="EventEnrolments" asp-action="Index" asp-route-eventId="@ev.EventID">Enrolments</a>
+                        <a class="btn btn-outline-raceday btn-sm" asp-controller="ResultEntry" asp-action="Index" asp-route-eventId="@ev.EventID">Results</a>
+                    </td>
+                </tr>
+                    }
+            </tbody>
+        </table>
+    </div>
+    }
+</div>

@@ -1,0 +1,11 @@
+@model EventTabsModel
+<div class="event-tabs-header">
+    <p class="eyebrow">Managing event</p>
+    <h1>@Model.EventName</h1>
+</div>
+<ul class="nav nav-tabs-raceday mb-4">
+    <li class="nav-item"><a class="nav-link @(Model.Active == "Edit" ? "active" : "")" asp-controller="Organiser" asp-action="EditEvent" asp-route-id="@Model.EventId">Details</a></li>
+    <li class="nav-item"><a class="nav-link @(Model.Active == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index" asp-route-eventId="@Model.EventId">Categories</a></li>
+    <li class="nav-item"><a class="nav-link @(Model.Active == "Enrolments" ? "active" : "")" asp-controller="EventEnrolments" asp-action="Index" asp-route-eventId="@Model.EventId">Enrolments</a></li>
+    <li class="nav-item"><a class="nav-link @(Model.Active == "Results" ? "active" : "")" asp-controller="ResultEntry" asp-action="Index" asp-route-eventId="@Model.EventId">Results</a></li>
+</ul>
