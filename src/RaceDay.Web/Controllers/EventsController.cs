@@ -52,4 +52,36 @@ public class EventsController : AppController
 
         return RedirectToAction(nameof(Details), new { id = eventId });
     }
+
+    // GET: /Events/CreateCategory/{eventId}
+    [Authorize(Roles = Lookups.Organiser)]
+    public IActionResult CreateCategory(int eventId)
+    {
+        ViewData["EventID"] = eventId;
+        return View(new CategoryFormViewModel());
+    }
+
+    // POST: /Events/CreateCategory/{eventId}
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = Lookups.Organiser)]
+    public async Task<IActionResult> CreateCategory(int eventId, CategoryFormViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            ViewData["EventID"] = eventId;
+            return View(model);
+        }
+
+        var result = await _api.CreateCategoryAsync(eventId, model);
+        if (result.Success)
+        {
+            SetSuccess("Category added successfully!");
+            return RedirectToAction(nameof(Details), new { id = eventId });
+        }
+
+        SetError(result.Error ?? "Failed to create category.");
+        ViewData["EventID"] = eventId;
+        return View(model);
+    }
+
 }

@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+
+# ---------- Stage 1: build ----------
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy only the project file first so the restore step is cached until packages change.
+COPY RaceDay.Web.csproj ./
+RUN dotnet restore
+
+# Then copy the rest of the source and publish a release build.
+COPY . ./
+RUN dotnet publish RaceDay.Web.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+
+# ---------- Stage 2: runtime (small image, no SDK) ----------
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+
+# Same behaviour inside and outside the container: no OS-specific culture data.
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 \
+    ASPNETCORE_URLS=http://+:8080 \
+    ApiSettings__BaseUrl=http://host.docker.internal:5080
+
+COPY --from=build /app/publish ./
+
+# Run as the built-in non-root user instead of root.
+USER $APP_UID
+
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "RaceDay.Web.dll"]
