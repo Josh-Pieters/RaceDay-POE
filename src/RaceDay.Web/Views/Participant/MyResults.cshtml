@@ -1,0 +1,36 @@
+@model List<ApiRaceResult>
+    @{ ViewData["Title"] = "My Results"; }
+    <div class="page-header">
+        <p class="eyebrow">Participant</p>
+        <h1>My Results</h1>
+        <p class="text-muted">Your race history across every completed event you entered.</p>
+    </div>
+    @if (!Model.Any())
+{
+    <div class="empty-state">
+        <h3>No results yet</h3>
+        <p>Results appear here once an organiser has captured them after the event.</p>
+    </div>
+}
+else
+{
+    <div class="panel p-0">
+        <div class="table-responsive">
+            <table class="table table-raceday align-middle mb-0">
+                <thead><tr><th>Event</th><th>Date</th><th>Category</th><th>Finish time</th><th>Position</th></tr></thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                    <tr>
+                        <td><a asp-controller="Events" asp-action="Details" asp-route-id="@r.EventID">@r.EventName</a></td>
+                        <td>@UiHelpers.Date(r.EventDate)</td>
+                        <td>@r.CategoryName</td>
+                        <td class="time-cell">@UiHelpers.FinishTime(r.FinishTime)</td>
+                        <td><span class="position-pill">@UiHelpers.Position(r)</span></td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
