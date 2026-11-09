@@ -43,9 +43,14 @@ public class EventResponse
     public string? Province { get; set; }
     public string EventType { get; set; } = string.Empty;
     public decimal DistanceKM { get; set; }
+    public string? BannerImageUrl { get; set; }
+
+    /// <summary>Confirmed enrolments across all categories. Only filled in for the Organiser dashboard.</summary>
+    public int? EnrolmentCount { get; set; }
+
     public List<CategoryResponse>? Categories { get; set; }
 
-    public static EventResponse From(Event e, bool includeCategories = false) => new()
+    public static EventResponse From(Event e, bool includeCategories = false, int? enrolmentCount = null) => new()
     {
         EventID = e.EventID,
         OrganiserID = e.OrganiserID,
@@ -58,6 +63,8 @@ public class EventResponse
         Province = e.Province,
         EventType = e.EventType,
         DistanceKM = e.DistanceKM,
+        BannerImageUrl = e.BannerImageUrl,
+        EnrolmentCount = enrolmentCount,
         Categories = includeCategories
             ? e.Categories.OrderBy(c => c.DistanceKM).Select(c => CategoryResponse.From(c)).ToList()
             : null

@@ -37,6 +37,7 @@ public class ProfileResponse
     public string? EmergencyContactName { get; set; }
     public string? EmergencyContactPhone { get; set; }
     public string? MedicalNotes { get; set; }
+    public string? ProfilePictureUrl { get; set; }
 
     public static ProfileResponse From(UserProfile p) => new()
     {
@@ -45,7 +46,8 @@ public class ProfileResponse
         Gender = p.Gender,
         EmergencyContactName = p.EmergencyContactName,
         EmergencyContactPhone = p.EmergencyContactPhone,
-        MedicalNotes = p.MedicalNotes
+        MedicalNotes = p.MedicalNotes,
+        ProfilePictureUrl = p.ProfilePictureUrl
     };
 }
 

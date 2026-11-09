@@ -9,6 +9,7 @@ public class UserProfile
     public string? EmergencyContactName { get; set; }
     public string? EmergencyContactPhone { get; set; }
     public string? MedicalNotes { get; set; }
+    public string? ProfilePictureUrl { get; set; }
 
     public AppUser User { get; set; } = null!;
 }
