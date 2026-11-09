@@ -1,0 +1,85 @@
+@model ProfileViewModel
+@{ ViewData["Title"] = "My Profile"; }
+<div class="page-header">
+    <p class="eyebrow">@Model.Role</p>
+    <h1>My Profile</h1>
+</div>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="panel text-center">
+            @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+            {
+            <img class="avatar-lg" src="@Model.ProfilePictureUrl" alt="Profile picture of @Model.FullName" />
+            }
+            else
+            {
+            <div class="avatar-lg avatar-initials">@UiHelpers.Initials(Model.FullName)</div>
+            }
+            <h2 class="h5 mt-3 mb-0">@Model.FullName</h2>
+            <p class="text-muted">@Model.Email</p>
+            <form asp-action="UploadPicture" method="post" enctype="multipart/form-data" class="text-start">
+                <label class="form-label" for="picture">Profile picture</label>
+                <input class="form-control mb-2" type="file" id="picture" name="picture" accept="image/png,image/jpeg,image/webp" />
+                <div class="form-text mb-2">JPG, PNG or WebP, up to 5 MB.</div>
+                <button type="submit" class="btn btn-outline-raceday w-100">Upload picture</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="panel">
+            <h2>Personal information</h2>
+            <form asp-action="Update" method="post" novalidate>
+                <input type="hidden" asp-for="Email" />
+                <input type="hidden" asp-for="Role" />
+                <input type="hidden" asp-for="ProfilePictureUrl" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <input asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DateOfBirth" class="form-label"></label>
+                        <input asp-for="DateOfBirth" class="form-control" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Gender" class="form-label"></label>
+                        <select asp-for="Gender" class="form-select">
+                            <option value="">Prefer not to say</option>
+                            @foreach (var g in Lookups.Genders)
+                            {
+                            <option value="@g" selected="@(Model.Gender == g)">@g</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EmergencyContactName" class="form-label"></label>
+                        <input asp-for="EmergencyContactName" class="form-control" />
+                        <span asp-validation-for="EmergencyContactName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EmergencyContactPhone" class="form-label"></label>
+                        <input asp-for="EmergencyContactPhone" class="form-control" />
+                        <span asp-validation-for="EmergencyContactPhone" class="text-danger"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="MedicalNotes" class="form-label"></label>
+                        <textarea asp-for="MedicalNotes" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="MedicalNotes" class="text-danger"></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-raceday mt-4">Save changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
