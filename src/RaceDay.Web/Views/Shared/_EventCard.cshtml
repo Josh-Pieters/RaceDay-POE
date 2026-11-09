@@ -1,0 +1,20 @@
+@model ApiEvent
+<article class="event-card h-100">
+    <a asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventID" class="event-card-media">
+        @if (!string.IsNullOrEmpty(Model.BannerImageUrl))
+        {
+        <img src="@Model.BannerImageUrl" alt="Banner for @Model.EventName" loading="lazy" />
+        }
+        else
+        {
+        <div class="event-card-placeholder @UiHelpers.TypeClass(Model.EventType)"><span>@Model.EventType</span></div>
+        }
+        <span class="type-chip @UiHelpers.TypeClass(Model.EventType)">@Model.EventType</span>
+    </a>
+    <div class="event-card-body">
+        <div class="event-date">@UiHelpers.Date(Model.EventDate) &middot; @UiHelpers.Time(Model.StartTime)</div>
+        <h3>@Model.EventName</h3>
+        <p class="event-meta">@Model.Location@(string.IsNullOrEmpty(Model.Province) ? "" : ", " + Model.Province) &middot; @UiHelpers.Km(Model.DistanceKM)</p>
+        <a class="btn btn-raceday btn-sm" asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventID">View event</a>
+    </div>
+</article>
