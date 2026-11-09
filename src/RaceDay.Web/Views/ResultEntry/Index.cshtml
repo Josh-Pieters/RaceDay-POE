@@ -1,0 +1,56 @@
+@model EventEnrolmentsViewModel
+@{ ViewData["Title"] = "Enter results"; }
+<partial name="_EventTabs" model='new EventTabsModel(Model.Event.EventID, Model.Event.EventName, "Results")' />
+@if (!Model.Enrolments.Any())
+{
+<div class="empty-state">
+    <h3>No confirmed participants</h3>
+    <p>Results can be captured for participants with a confirmed enrolment.</p>
+</div>
+}
+else
+{
+<p class="text-muted">Enter each participant's finish time (hh:mm:ss) and positions, then save to publish the result.</p>
+<div class="panel p-0">
+    <div class="table-responsive">
+        <table class="table table-raceday align-middle mb-0">
+            <thead>
+                <tr><th>Participant</th><th>Category</th><th>Finish time</th><th>Overall pos.</th><th>Category pos.</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.Enrolments)
+                    {
+                        var formId = "result-" + e.EnrolmentID;
+                <tr>
+                    <td><strong>@e.ParticipantName</strong>@if (e.Result != null) { <br /><small class="text-success">Published</small> }</td>
+                    <td>@e.CategoryName</td>
+                    <td>
+                        <input form="@formId" type="time" step="1" name="FinishTime" class="form-control form-control-sm"
+                               value="@(e.Result?.FinishTime?.ToString("HH:mm:ss"))" required />
+                    </td>
+                    <td>
+                        <input form="@formId" type="number" min="1" name="OverallPosition" class="form-control form-control-sm"
+                               value="@e.Result?.OverallPosition" required />
+                    </td>
+                    <td>
+                        <input form="@formId" type="number" min="1" name="CategoryPosition" class="form-control form-control-sm"
+                               value="@e.Result?.CategoryPosition" required />
+                    </td>
+                    <td class="text-end">
+                        <form id="@formId" asp-action="Save" method="post">
+                            <input type="hidden" name="EventID" value="@Model.Event.EventID" />
+                            <input type="hidden" name="EnrolmentID" value="@e.EnrolmentID" />
+                            @if (e.Result != null)
+                                    {
+                            <input type="hidden" name="ResultID" value="@e.Result.ResultID" />
+                                    }
+                            <button type="submit" class="btn btn-raceday btn-sm">@(e.Result == null ? "Save & publish" : "Update")</button>
+                        </form>
+                    </td>
+                </tr>
+                    }
+            </tbody>
+        </table>
+    </div>
+</div>
+}
