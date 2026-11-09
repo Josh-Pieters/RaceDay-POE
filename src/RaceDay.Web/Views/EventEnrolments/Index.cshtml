@@ -1,0 +1,33 @@
+@model EventEnrolmentsViewModel
+@{ ViewData["Title"] = "Enrolments"; }
+<partial name="_EventTabs" model='new EventTabsModel(Model.Event.EventID, Model.Event.EventName, "Enrolments")' />
+@if (!Model.Enrolments.Any())
+{
+<div class="empty-state">
+    <h3>No enrolments yet</h3>
+    <p>Participants who enter this event will appear here with their category and status.</p>
+</div>
+}
+else
+{
+<div class="panel p-0">
+    <div class="panel-title">@Model.Enrolments.Count participant@(Model.Enrolments.Count == 1 ? "" : "s")</div>
+    <div class="table-responsive">
+        <table class="table table-raceday align-middle mb-0">
+            <thead><tr><th>Participant</th><th>Category</th><th>Status</th><th>Enrolled on</th><th>Result</th></tr></thead>
+            <tbody>
+                @foreach (var e in Model.Enrolments)
+                    {
+                <tr>
+                    <td><strong>@e.ParticipantName</strong></td>
+                    <td>@e.CategoryName</td>
+                    <td><partial name="_StatusBadge" model="e.Status" /></td>
+                    <td>@e.EnrolmentDate.ToString("dd MMM yyyy")</td>
+                    <td>@(e.Result != null ? UiHelpers.FinishTime(e.Result.FinishTime) : "Not captured")</td>
+                </tr>
+                    }
+            </tbody>
+        </table>
+    </div>
+</div>
+}
