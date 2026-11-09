@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RaceDay.Api.Data;
 using RaceDay.Api.Models;
+using RaceDay.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddDbContext<RaceDayDbContext>(options =>
 
 // ---- Password hashing (ASP.NET Core Identity's PBKDF2 hasher - never store plain text) ----
 builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
+
+// ---- Azure Blob Storage for event banners and profile pictures ----
+builder.Services.AddSingleton<IBlobStorageService, AzureBlobStorageService>();
 
 // ---- Session-based authentication (server-issued auth cookie carrying user id + role) ----
 builder.Services
