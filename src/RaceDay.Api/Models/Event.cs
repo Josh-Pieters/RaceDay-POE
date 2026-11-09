@@ -12,6 +12,7 @@ public class Event
     public string? Province { get; set; }
     public string EventType { get; set; } = EventTypes.Run;
     public decimal DistanceKM { get; set; }
+    public string? BannerImageUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public AppUser Organiser { get; set; } = null!;

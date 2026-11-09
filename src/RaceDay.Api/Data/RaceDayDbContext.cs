@@ -37,6 +37,7 @@ public class RaceDayDbContext : DbContext
             e.Property(x => x.EmergencyContactName).HasMaxLength(100);
             e.Property(x => x.EmergencyContactPhone).HasMaxLength(20);
             e.Property(x => x.MedicalNotes).HasMaxLength(500);
+            e.Property(x => x.ProfilePictureUrl).HasMaxLength(500);
             e.HasOne(x => x.User).WithOne(u => u.Profile)
                 .HasForeignKey<UserProfile>(x => x.UserID)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -52,6 +53,7 @@ public class RaceDayDbContext : DbContext
             e.Property(x => x.Province).HasMaxLength(50);
             e.Property(x => x.EventType).HasMaxLength(10).IsRequired();
             e.Property(x => x.DistanceKM).HasPrecision(5, 2);
+            e.Property(x => x.BannerImageUrl).HasMaxLength(500);
             e.HasOne(x => x.Organiser).WithMany(u => u.OrganisedEvents)
                 .HasForeignKey(x => x.OrganiserID)
                 .OnDelete(DeleteBehavior.Restrict);
